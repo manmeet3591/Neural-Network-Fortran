@@ -1,0 +1,11 @@
+&main_nml
+ni = 2
+no = 2
+no_of_nh = 3
+hidden_file = "hidden"
+N = 0.05 ! learning rate
+M = -0.01 ! momentum factor 
+iterations = 1000
+no_of_train = 
+no_of_test =  
+/
