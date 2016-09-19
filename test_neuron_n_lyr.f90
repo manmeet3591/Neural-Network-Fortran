@@ -83,7 +83,7 @@ contains
     do i=1,no_of_nh-1
   
       allocate(wh(i)%winh(nh(i),nh(i+1)-1))
-      allocate(wh(i)%winh(nh(i),nh(i+1)-1))
+      allocate(ch(i)%cinh(nh(i),nh(i+1)-1))
 
     end do
 
@@ -113,19 +113,22 @@ contains
         end do
         print *,"Random Initialization done"
 
-        ci = 0.0
-        co = 0.0
-        ch = 0.0
+        ci(:,:) = 0.0
+        do i=1,no_of_nh-1
+          ch(i)%cinh(:,:) = 0.0
+        enddo
+        co(:,:) = 0.0
+
     end subroutine set_NN
 
-    subroutine  update(inpi, aout)
+    subroutine  update(inp, aout)
   
-    integer :: i, j, k
+    integer :: i, j, k, l
     real :: sum
     real,dimension(:) :: inp
     real,dimension(:) :: aout
 
-        if (size(inp) .ne. self.ni-1) print *,"wrong number of inputs"
+        if (size(inp) .ne. ni-1) print *,"wrong number of inputs"
 
         ! input activations
         ai(:) = 1.0
@@ -168,21 +171,22 @@ contains
 
     end subroutine update
 
-    subroutine backPropagate(targets, N, M, error)
+    subroutine backPropagate(error,tar)
       
-      real :: N, M, change
+      real :: change
+      real,dimension(:) :: tar
       real,allocatable,dimension(:) :: output_deltas
       type(hidden),allocatable,dimension(:) :: hidden_deltas
       real :: error, dsig
       integer :: i, j, k, l      
-
-        if (size(targets) .ne. no) print *,"wrong number of target values"
+      
+        if (size(tar) .ne. no) print *,"wrong number of target values"
         allocate(output_deltas(no))
         ! calculate error terms for output
 
         output_deltas = 0.0 
         do l=1,no
-            error = targets(l) - ao(l)
+            error = tar(l) - ao(l)
             call dsigmoid(ao(l), dsig)
             output_deltas(l) = dsig * error
         enddo
@@ -204,12 +208,12 @@ contains
 
         do i=1,no_of_nh
         
-          allocate(hidden_deltas(i)%hinh(nh(i))
+          allocate(hidden_deltas(i)%hinh(nh(i)))
         
         end do
 
 
-        hidden_deltas = 0.0
+!        hidden_deltas = 0.0
 
         do k=1,nh(no_of_nh)
             error = 0.0
@@ -258,7 +262,7 @@ contains
 !--------------------------------------------------------------------------------------------------------
 
          ! calculate error terms for hidden
-        hidden_deltas(1) = 0.0
+         ! hidden_deltas(1) = 0.0
         do j=1,nh(1)
             error = 0.0
             do k=1,nh(2)
@@ -281,14 +285,17 @@ contains
         ! calculate error
         error = 0.0
         do k=1,size(targets)
-            error = error + 0.5*(targets(k)-ao(k))**2
+            error = error + 0.5*(tar(k)-ao(k))**2
         enddo
   
   end subroutine backPropagate
 
-  subroutine train(patterns, iterations, N, M)
-    integer :: i
+  subroutine train()
+    integer :: i, j
     real :: err, error
+    real,dimension(no) :: aout
+    real,dimension(no) :: tar
+    real,dimension(ni) :: inp
       ! N: learning rate
       ! M: momentum factor
       ! read the inputs 
@@ -297,13 +304,15 @@ contains
       do i=1,iterations
           error = 0.0
           do j=1,no_of_training
-              
-              call update(inputs(:,j))                     ! Feed Forward
-              call backPropagate(targets(:,j), N, M, err)  ! Back Propagate
+
+              inp(:) = inputs(:,i)
+              call update(inp,aout) ! Feed Forward
+              tar(:) = targets(:,i)
+              call backPropagate(err,tar)   ! Back Propagate
               error = error + err
           enddo
-          if (i % 100 == 0)  print *,'error ' % error
-          if (error < 0.001) break
+          if (mod(i, 100) == 0)  print *,"error =", error
+          if (error < 0.001) exit
       enddo
 
     end subroutine train
@@ -321,6 +330,30 @@ contains
 
     subroutine read_data()
 
+    integer :: i, j
+    real,dimension(3,4) :: fill_data
+    character(len=100) :: file_data 
+    file_data = "train"
+    open(25,file=file_data)
+    do i=1,4
+!      print *,"Check 1"
+!      print *,no_of_nh
+      read(25,*) fill_data(:,i)
+      print *,"Read data at i = ",i,fill_data(:,i)
+    end do
+    close(25)
+    do i=1,no_of_training
+      do j=1,ni
+        inputs(j,i)  = fill_data(i,j)
+      enddo
+    
+      do j=1,no
+          targets(j,i) = fill_data(i,j+ni)
+      enddo
+    enddo
+
+    print *,"inputs  = ", inputs
+    print *,"targets = ", targets 
 
     end subroutine read_data
 
