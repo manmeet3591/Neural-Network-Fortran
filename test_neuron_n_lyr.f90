@@ -58,7 +58,7 @@ contains
 ! Allocation 
 
     allocate(ai(ni))
-    allocate(inputs(ni,no_of_training))
+    allocate(inputs(ni-1,no_of_training))
 
     allocate(ao(no))
     allocate(targets(no,no_of_training))
@@ -343,18 +343,18 @@ contains
     end do
     close(25)
     do i=1,no_of_training
-      do j=1,ni
-        inputs(j,i)  = fill_data(i,j)
+      do j=1,ni-1
+        inputs(j,i)  = fill_data(j,i)
       enddo
     
       do j=1,no
-          targets(j,i) = fill_data(i,j+ni)
+          targets(j,i) = fill_data(j+ni,i)
       enddo
     enddo
 
     print *,"inputs  = ", inputs
     print *,"targets = ", targets 
-
+! Arrays are stored in fortran column wise as column,row
     end subroutine read_data
 
 subroutine sigmoid(x,y)
