@@ -99,9 +99,11 @@ contains
             ah(i)%ainh(:) = 1.0     
           end do
          ao = 1.0
-
+!        print *,"Check 1"
         call random(wi,ni,nh(1)-1)
+!        print *,"Check 3"
         call fill_random(wi,ni,nh(1)-1)
+!        print *,"Check 2"
         call random(wo,nh(no_of_nh),no)
         call fill_random(wo,nh(no_of_nh),no)
       
@@ -118,6 +120,7 @@ contains
           ch(i)%cinh(:,:) = 0.0
         enddo
         co(:,:) = 0.0
+        print *,"Information set in the Neural Network"
 
     end subroutine set_NN
 
@@ -375,7 +378,7 @@ real,dimension(:,:) :: r
 
 seed = 0.5D0
 
-print *, seed
+!print *, seed
 do i = 1, n
   do j=1,m
     r(i,j) =  conrand(seed)
@@ -427,9 +430,13 @@ end function conrand
 subroutine end_NN()
 
   deallocate(nh)
+  print *,"check 2"
   deallocate(ai, ao)
+  print *,"check 3"
   deallocate(wi, wo, ci, co, inputs, targets)
+  print *,"check 4"
   deallocate(ah, wh, ch)
+  print *,"check 5"
 
 end subroutine end_NN
 
