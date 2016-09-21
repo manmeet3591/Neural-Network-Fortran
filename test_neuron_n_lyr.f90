@@ -130,7 +130,7 @@ contains
     real :: sum
     real,dimension(:) :: inp
     real,dimension(:) :: aout
-
+        print *,"Size of inputs,ni-1 in update = ", size(inp), ni-1
         if (size(inp) .ne. ni-1) print *,"wrong number of inputs"
 
         ! input activations
@@ -171,7 +171,7 @@ contains
         enddo
 !        return self.ao[:]
         aout = ao
-
+        print *,"End of update "
     end subroutine update
 
     subroutine backPropagate(error,tar)
@@ -193,7 +193,7 @@ contains
             call dsigmoid(ao(l), dsig)
             output_deltas(l) = dsig * error
         enddo
-
+   print *,"Check 1 from backpropagate" 
        ! update output weights
         do k=1,nh(no_of_nh)
             do l=1,no
@@ -204,7 +204,7 @@ contains
             enddo
         enddo
 
-        deallocate(output_deltas)
+!        deallocate(output_deltas)
 
         ! calculate error terms for hidden - output 
         allocate(hidden_deltas(no_of_nh))
@@ -215,7 +215,8 @@ contains
         
         end do
 
-
+      print *,"Check 2 from backpropagate"
+      print *,"Size of output_deltas = "
 !        hidden_deltas = 0.0
 
         do k=1,nh(no_of_nh)
@@ -226,7 +227,7 @@ contains
             call dsigmoid(ah(no_of_nh)%ainh(k),dsig)
             hidden_deltas(no_of_nh)%hinh(k) = dsig * error
         enddo
-
+      print *,"Check 3 from backpropagate"
         ! update hidden weights
         do j=1,nh(no_of_nh-1)
             do k=1,nh(no_of_nh)
@@ -290,6 +291,7 @@ contains
         do k=1,size(targets)
             error = error + 0.5*(tar(k)-ao(k))**2
         enddo
+! to be deallocated output_deltas and hidden_deltas
   
   end subroutine backPropagate
 
@@ -298,7 +300,7 @@ contains
     real :: err, error
     real,dimension(no) :: aout
     real,dimension(no) :: tar
-    real,dimension(ni) :: inp
+    real,dimension(ni-1) :: inp
       ! N: learning rate
       ! M: momentum factor
       ! read the inputs 
@@ -309,8 +311,10 @@ contains
           do j=1,no_of_training
 
               inp(:) = inputs(:,i)
+              print *,"Size of input in train = ",size(inp)
               call update(inp,aout) ! Feed Forward
               tar(:) = targets(:,i)
+              print *,"Size of targets in train = ",size(tar)
               call backPropagate(err,tar)   ! Back Propagate
               error = error + err
           enddo
@@ -433,9 +437,11 @@ subroutine end_NN()
   print *,"check 2"
   deallocate(ai, ao)
   print *,"check 3"
-  deallocate(wi, wo, ci, co, inputs, targets)
+  !deallocate(wi, wo, ci, co, inputs, targets)
+  
+  deallocate(wi, wo, ci, co)
   print *,"check 4"
-  deallocate(ah, wh, ch)
+!  deallocate(ah, wh, ch)
   print *,"check 5"
 
 end subroutine end_NN
